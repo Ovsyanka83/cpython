@@ -357,6 +357,8 @@ class _NormalAccessor(_Accessor):
 
     realpath = staticmethod(os.path.realpath)
 
+    walk = staticmethod(os.walk)
+
 
 _normal_accessor = _NormalAccessor()
 
@@ -1017,6 +1019,20 @@ class Path(PurePath):
                 # Yielding a path object for these makes little sense
                 continue
             yield self._make_child_relpath(name)
+
+    def walk(self, topdown=True, onerror=None, followlinks=False):
+        for root, dirs, files in self._accessor.walk(
+            self,
+            topdown=topdown,
+            onerror=onerror,
+            followlinks=followlinks
+        ):
+            root_path = Path(root)
+            yield (
+                root_path,
+                [root_path._make_child_relpath(dir_) for dir_ in dirs],
+                [root_path._make_child_relpath(file) for file in files],
+            )
 
     def glob(self, pattern):
         """Iterate over this subtree and yield all existing files (of any
